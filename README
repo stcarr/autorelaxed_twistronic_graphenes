@@ -5,6 +5,6 @@ Use "twistronic_graphene_bands_basic.m" as a demo script of calculating the elec
 2: Monolayer-on-Bilayer Graphene (MBG)
 3: Alternating-Twist Trilayer Graphene (ATTG)
 
-Unrelaxed calculations can be used "out of the box", just set params.relax_str = 0
-For relaxed calculations, you will need the "relax_data" directory, which is not maintened on this git repo.
+Unrelaxed calculations can be used "out of the box", just set params.relax_str = 0 in the demo script.
+For relaxed calculations, you will need the "relax_data" directory, which is not maintained in this git repo.
 Contact Stephen to get a copy of the relaxed data (for TBG only, but can use for the other two structures and its an "ok" approximation).
