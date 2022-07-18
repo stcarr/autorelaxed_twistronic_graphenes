@@ -8,3 +8,7 @@ Use "twistronic_graphene_bands_basic.m" as a demo script of calculating the elec
 Unrelaxed calculations can be used "out of the box", just set params.relax_str = 0 in the demo script.
 For relaxed calculations, you will need the "relax_data" directory, which is not maintained in this git repo.
 Contact Stephen to get a copy of the relaxed data (for TBG only, but can use for the other two structures and its an "ok" approximation).
+
+For more details on the method, please see (and cite):
+"Electronic Observables for Relaxed Bilayer 2D Heterostructures in Momentum Space" D. Massatt, S. Carr, and M. Luskin (2021).
+https://arxiv.org/abs/2109.15296
