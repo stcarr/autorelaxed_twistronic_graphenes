@@ -1,4 +1,4 @@
-function [bands, qarr] = twistronic_graphene_continuum_relax_bandcalc(params)
+function [bands, qarr, weights] = twistronic_graphene_continuum_relax_bandcalc(params)
 
     % authors: ziyan (zoe) zhu, stephen carr 
     % email: zzhu1@g.harvard.edu, stephen_carr1@brown.edu
@@ -11,7 +11,7 @@ function [bands, qarr] = twistronic_graphene_continuum_relax_bandcalc(params)
     E_field = params.E_field;   % vertical displacement field in eV (total potential energy across the three layers)
     AA_str = params.AA_tunnel_strength; % controls A-to-A interlayer tunneling strength (e.g. scales w0)
     AB_str = params.AB_tunnel_strength; % rescales A-to-B interlayer tunneling strength (e.g. scales w1)
-
+    ldos_locations = params.ldos_locations;
 
     theta = params.theta;
 
@@ -217,9 +217,33 @@ function [bands, qarr] = twistronic_graphene_continuum_relax_bandcalc(params)
         
         norb_l1 = 2*size(k1,1);
         norb_l2 = 2*size(k2,1);
+        kx_l1 = k1(:,3);
+        ky_l1 = k1(:,4);
+        kx_l2 = k2(:,3);
+        ky_l2 = k2(:,4);
         
         if (structure_type == 0)
             H = H_blg;
+            
+            n_proj_orbs = 4;
+            % assign orbital indices in H
+            orb_idxs{1} = 1:2:norb_l1; % L1A
+            orb_idxs{2} = 2:2:norb_l1; % L1B
+            orb_idxs{3} = norb_l1 + (1:2:norb_l2); % L2A
+            orb_idxs{4} = norb_l1 + (2:2:norb_l2); % L2B
+            
+            % assign kx for each orbital
+            orb_kx{1} = kx_l1;
+            orb_kx{2} = kx_l1;
+            orb_kx{3} = kx_l2;
+            orb_kx{4} = kx_l2;
+            
+            % assign ky for each orbital
+            orb_ky{1} = ky_l1;
+            orb_ky{2} = ky_l1;
+            orb_ky{3} = ky_l2;
+            orb_ky{4} = ky_l2;
+            
         elseif (structure_type == 1)
             % get size of mono-on-bilayer Hamiltonian
             size_fullH = 2*norb_l1 + norb_l2;
@@ -241,7 +265,31 @@ function [bands, qarr] = twistronic_graphene_continuum_relax_bandcalc(params)
                 H(l1_A_orb, l2_B_orb) = t_AB;
                 H(l2_B_orb, l1_A_orb) = t_AB;
             end
-
+            
+            n_proj_orbs = 6;
+            % assign orbital indices in H
+            orb_idxs{1} = 1:2:norb_l1; % L1A
+            orb_idxs{2} = 2:2:norb_l1; % L1B
+            orb_idxs{3} = norb_l1 + (1:2:norb_l1); % L2A
+            orb_idxs{4} = norb_l1 + (2:2:norb_l1); % L2B
+            orb_idxs{5} = 2*norb_l1 + (1:2:norb_l2); % L3A
+            orb_idxs{6} = 2*norb_l1 + (2:2:norb_l2); % L3B
+            
+            % assign kx for each orbital
+            orb_kx{1} = kx_l1;
+            orb_kx{2} = kx_l1;
+            orb_kx{3} = kx_l1;
+            orb_kx{4} = kx_l1;
+            orb_kx{5} = kx_l2;
+            orb_kx{6} = kx_l2;            
+            % assign ky for each orbital
+            orb_ky{1} = ky_l1;
+            orb_ky{2} = ky_l1;
+            orb_ky{3} = ky_l1;
+            orb_ky{4} = ky_l1;
+            orb_ky{5} = ky_l2;
+            orb_ky{6} = ky_l2;
+            
         elseif (structure_type == 2)
             size_fullH = 2*norb_l1 + norb_l2;
             l1_idxs = 1:norb_l1;
@@ -257,12 +305,52 @@ function [bands, qarr] = twistronic_graphene_continuum_relax_bandcalc(params)
             % now add twisted coupling between 2nd and 3rd layer
             H(l2_idxs,l3_idxs) = H(l2_idxs,l1_idxs);
             H(l3_idxs,l2_idxs) = H(l1_idxs,l2_idxs);
+            
+            n_proj_orbs = 6;
+            % assign orbital indices in H
+            orb_idxs{1} = 1:2:norb_l1; % L1A
+            orb_idxs{2} = 2:2:norb_l1; % L1B
+            orb_idxs{3} = norb_l1 + (1:2:norb_l2); % L2A
+            orb_idxs{4} = norb_l1 + (2:2:norb_l2); % L2B
+            orb_idxs{5} = norb_l1+norb_l2 + (1:2:norb_l1); % L3A
+            orb_idxs{6} = norb_l1+norb_l2 + (2:2:norb_l1); % L3B
+            
+            % assign kx for each orbital
+            orb_kx{1} = kx_l1;
+            orb_kx{2} = kx_l1;
+            orb_kx{3} = kx_l2;
+            orb_kx{4} = kx_l2;
+            orb_kx{5} = kx_l1;
+            orb_kx{6} = kx_l1;            
+            % assign ky for each orbital
+            orb_ky{1} = ky_l1;
+            orb_ky{2} = ky_l1;
+            orb_ky{3} = ky_l2;
+            orb_ky{4} = ky_l2;
+            orb_ky{5} = ky_l1;
+            orb_ky{6} = ky_l1;
+            
         end
         
         num_eigs = size(H,1);
-        [~, raw_vals] = eigs(H,num_eigs); 
-        [vals(q_idx,:), ~] = sort(real(diag(raw_vals))); % sort eigenvalues from smallest to largest 
+        [raw_vecs, raw_vals] = eigs(H,num_eigs); 
+        [vals(q_idx,:), sort_idx] = sort(real(diag(raw_vals))); % sort eigenvalues from smallest to largest 
+        % re-order vectors correctly
+        raw_vecs = raw_vecs(:,sort_idx);
 
+        for orb = 1:n_proj_orbs
+            kx = orb_kx{orb};
+            ky = orb_ky{orb};
+            tar_idxs = orb_idxs{orb};
+            for ldos_idx = 1:length(ldos_locations)
+                rx = ldos_locations(1,ldos_idx);
+                ry = ldos_locations(2,ldos_idx);
+                phase_h = exp(1j*(kx*rx + ky*ry));
+                weights_h = transpose(phase_h)*raw_vecs(tar_idxs,:);
+                weights(orb,ldos_idx,:,q_idx) = abs(weights_h).^2;
+            end
+        end
+        
         if (mod(q_idx,10) == 0 || q_idx == 1)
             fprintf("H Diag: %d / %d \n",q_idx,size(q_list,1));
         end
