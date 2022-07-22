@@ -1,4 +1,18 @@
-function [dos, idos, E_list] = interp_kp_dos(theta,sweep_vals, sweep_kpts)
+function [dos, idos, E_list] = interp_kp_dos(theta,sweep_vals, sweep_kpts, ...
+                                                b_size, max_E, dE)
+
+    % number of extra bands to include
+    if ~exist('b_size','var')
+        b_size = 10;
+    end
+    % size of dos window
+    if ~exist('max_E','var')
+        max_E = 0.3;
+    end
+    % spacing of dos window
+    if ~exist('dE','var')
+        dE = 1e-3;
+    end
 
         fprintf("Starting DOS calculation (via interp. method) \n");
         
@@ -22,7 +36,7 @@ function [dos, idos, E_list] = interp_kp_dos(theta,sweep_vals, sweep_kpts)
 
 
 
-        for tar_b = 1:nb
+        for tar_b = (nb/2)-b_size:(nb/2+1)+b_size
         %for tar_b = 1;
         %fprintf("on band %d / %d \n",tar_b - ((nb/2)-b_size) + 1, 2*b_size + 2);
 
@@ -88,9 +102,6 @@ function [dos, idos, E_list] = interp_kp_dos(theta,sweep_vals, sweep_kpts)
                 end
             end
         end
-       
-        max_E = 0.5;
-        dE = max_E/1000;
         
         E_list = [-max_E:dE:max_E];
         dos = zeros(length(E_list),1);

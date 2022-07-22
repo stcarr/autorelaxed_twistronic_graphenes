@@ -1,7 +1,20 @@
-function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, sweep_kpts)
+function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, sweep_kpts, ...
+                                                b_size, max_E, dE)
 
     % number of extra bands to include
-    b_size = 10;
+    if ~exist('b_size','var')
+        b_size = 10;
+    end
+    % size of dos window
+    if ~exist('max_E','var')
+        max_E = 0.3;
+    end
+    % spacing of dos window
+    if ~exist('dE','var')
+        dE = 1e-3;
+    end
+
+    E_list = [-max_E:dE:max_E];
 
 
     fprintf("Starting LDOS calculation (via interp. method) \n");
@@ -105,10 +118,6 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
         end
     end
 
-    max_E = 0.3;
-    dE = max_E/6000;
-
-    E_list = [-max_E:dE:max_E];
     dos = zeros(length(E_list),1);
     ldos = zeros(length(E_list),nr);
 

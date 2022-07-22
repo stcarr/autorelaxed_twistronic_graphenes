@@ -69,9 +69,14 @@ axis([-inf inf -ax_m ax_m])
 %%
 kpts = [qmesh_x(:),qmesh_y(:);];
 
-%[dos, idos, E_list] = interp_kp_dos(params.theta, bands, kpts);
-[dos_gauss, idos_gauss, E_list_gauss] = interp_kp_dos_gaussian(params.theta, bands, kpts);
-[dos, ldos, E_list] = interp_kp_ldos(params.theta, bands, weights, kpts);
+nb = size(bands,2);
+b_size = 30; % include this many bands above and below the Fermi energy
+b_size = min(b_size, nb/2 - 1); % b_size needs to be smaller than half the # of bands
+max_E = 0.6; % maximum energy in the DOS window, in eV
+dE = 1e-3; % DOS window spacing, in eV
+%[dos, idos, E_list] = interp_kp_dos(params.theta, bands, kpts, b_size, max_E, dE);
+[dos_gauss, idos_gauss, E_list_gauss] = interp_kp_dos_gaussian(params.theta, bands, kpts, b_size, max_E, dE);
+[dos, ldos, E_list] = interp_kp_ldos(params.theta, bands, weights, kpts, b_size, max_E, dE);
 %%
 clf
 hold on
@@ -80,7 +85,7 @@ plot(E_list,log10(dos),'k','DisplayName','Interp method')
 plot(E_list_gauss,log10(dos_gauss),'r','DisplayName','Gauss method')
 xlabel('Energy (eV)')
 ylabel('DOS (log_{10}, states per eV per A^2')
-axis([-.15 .15 -2 2])
+axis([-max_E max_E -2 2])
 legend()
 %%
 clf
@@ -91,7 +96,7 @@ plot(E_list,log10(ldos(:,3)),'-g','DisplayName','SP LDOS')
 plot(E_list,log10(dos),'-k','DisplayName','DOS')
 
 box on
-axis([-.15 .15 -1 2.5])
+axis([-max_E max_E -1 2.5])
 xlabel('Energy (eV)')
 ylabel('LDOS (log_{10}, states per eV per A^2)')
 legend()
