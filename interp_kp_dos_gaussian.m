@@ -54,23 +54,16 @@ function [dos, idos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_k
         end
     end
 
-    tot_bands = 2*(b_size+1);
-    tot_bands = 4*tot_bands; % 2 for valley, 2 for spin
-
     alpha = 2.47;
     sc_alpha = alpha/(2*sind(theta/2));
     sc_area = sc_alpha^2*sind(60)*1e-2; %area in nm^2
-    n0 = 1/sc_area;
-
-    idos_rescale = tot_bands/idos(end);
-    dos_rescale = idos_rescale*n0;
+    
+    dos_rescale = 4/sc_area;
+    idos_rescale = 4;
 
     idos(:) = idos_rescale*(idos(:) - 0.5*idos(end));
-    %[val, idx] = min(abs(idos - (-2)));
 
-    %idos = idos;
     dos = dos_rescale*dos;
-    %half_filling_hole_E(t_idx) = E_list(idx);
 
     toc
 
