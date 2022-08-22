@@ -8,7 +8,7 @@ params.AB_tunnel_strength = 1; % rescales A-to-B interlayer tunneling strength (
 params.E_field = 0; % DOES NOT DO ANYTHING HERE   % vertical displacement field in eV (total potential energy across the layers)
 
 
-params.theta = 1.35;
+params.theta = 1.53;
 
 % truncation of momentum basis
 params.k_cutoff = 0.15;         % momentum cutoff, in units of inverse Angstroms, translates to an energy cutoff of 0.15*v_D ~
@@ -29,6 +29,7 @@ params.nq = 30;
 
 params.qx_list = [0];
 params.qy_list = [0];
+params.ldos_locations = [];
 
 [bands, q_scale] = twistronic_graphene_continuum_relax_bandcalc(params);
 

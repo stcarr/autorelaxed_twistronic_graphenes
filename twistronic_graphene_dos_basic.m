@@ -3,6 +3,18 @@ params = struct();
 params.structure_type = 0; % 0: TBG, 1: Mono-on-bilayer, 2: alternating-twist trilayer
 params.relax_strength = 1; % scaling of atomic relaxations (0.0 turns off relaxations)
 
+% For A-T-A (alternating twist trilayer), the AA stacking (r = 0) structure corresponds to:
+% L3: o-o--o-o 
+% L2: o-o--o-o (<-- motion along A1+A2 direction corresponds to this layer moving LEFT)
+% L1: o-o--o-o
+
+
+% For mono-on-bilayer, the AA-stacking (r = 0) correpsonds to the structure:
+% L3: o-o--o-o (<-- motion along A1+A2 direction corresponds to this layer moving LEFT)
+% L2: o-o--o-o
+% L1: --o-o--o
+% i.e. the A orbital of L1 is coupled to the B orbital of L2.
+
 params.AA_tunnel_strength = 1; % controls A-to-A interlayer tunneling strength (e.g. scales w0)
 params.AB_tunnel_strength = 1; % rescales A-to-B interlayer tunneling strength (e.g. scales w1)
 params.E_field = 0; % DOES NOT DO ANYTHING HERE   % vertical displacement field in eV (total potential energy across the layers)
@@ -41,8 +53,8 @@ b12 = G2 - G1; % moire reciprocal vectors
 Gm1 =  [b12(1,1);-b12(2,1)];
 Gm2 = -b12(:,2);
 
-q_spacing = 0.1;
-q_arr = 0:q_spacing:(1-q_spacing);
+q_spacing = 0.05; % make sure 0.5 is divisible by this number, or we will miss the K-point!
+q_arr = 0.5 - [0:q_spacing:(1-q_spacing)]; % K centered mesh
 [mesh_i,mesh_j] = meshgrid(q_arr,q_arr);
 qmesh_x = mesh_i*Gm1(1) + mesh_j*Gm2(1);
 qmesh_y = mesh_i*Gm1(2) + mesh_j*Gm2(2);
@@ -54,8 +66,9 @@ A = 2*pi*inv(b12)';
 A1 = A(:,1);
 A2 = A(:,2);
 
-locs = [0,1/3,1/2].*(A1+A2);
-% AA, AB, and DW (SP)
+locs = [0,1/3,1/2,2/3].*(A1+A2);
+% AA, AB, DW (SP), BA
+% for monolayer on bilayer, AB = ABC, BA = ABA
 
 params.ldos_locations = locs;
 [bands, ~, weights] = twistronic_graphene_continuum_relax_bandcalc(params);
@@ -63,7 +76,7 @@ params.ldos_locations = locs;
 %%
 clf
 
-ax_m = 150; % axis max, in meV
+ax_m = 200; % axis max, in meV
 plot(1e3*(bands),'-k')
 axis([-inf inf -ax_m ax_m])
 %%
@@ -90,14 +103,16 @@ legend()
 %%
 clf
 hold on
-plot(E_list,log10(ldos(:,1)),'-r','DisplayName','AA LDOS')
-plot(E_list,log10(ldos(:,2)),'-b','DisplayName','AB LDOS')
-plot(E_list,log10(ldos(:,3)),'-g','DisplayName','SP LDOS')
-plot(E_list,log10(dos),'-k','DisplayName','DOS')
+plot(E_list,(ldos(:,1)),'-r','DisplayName','AA LDOS')
+plot(E_list,(ldos(:,2)),'-b','DisplayName','AB LDOS')
+plot(E_list,(ldos(:,3)),'-g','DisplayName','SP LDOS')
+plot(E_list,(ldos(:,4)),'color',[0.5,0.5,0],'DisplayName','BA LDOS')
+
+plot(E_list,(dos),'-k','DisplayName','DOS')
 
 box on
-axis([-max_E max_E -1 2.5])
+axis([-max_E max_E 0 1.2*max(ldos(:))])
 xlabel('Energy (eV)')
-ylabel('LDOS (log_{10}, states per eV per A^2)')
+ylabel('LDOS (states per eV per A^2)')
 legend()
 
