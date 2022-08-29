@@ -11,7 +11,7 @@ params.E_field = 0; % DOES NOT DO ANYTHING HERE   % vertical displacement field 
 params.theta = 1.53;
 
 % truncation of momentum basis
-params.k_cutoff = 0.15;         % momentum cutoff, in units of inverse Angstroms, translates to an energy cutoff of 0.15*v_D ~
+params.k_cutoff = 0.20;         % momentum cutoff, in units of inverse Angstroms, translates to an energy cutoff of 0.15*v_D ~
 params.grid_search = 30;       % momentum < cutoff found within [-grid_search,grid_search]^2 
 
 % interlayer coupling sampling mesh
@@ -25,7 +25,7 @@ params.dk_scale = 0.5; %  spacing of k mesh, in units of b12
 
 % band structure line cut settings
 params.q_cut_type = 1;         % what kind of line-cut we do in momentum space (2 for supplied k-points)
-params.nq = 30;  
+params.nq = 40;  
 
 params.qx_list = [0];
 params.qy_list = [0];
@@ -39,4 +39,8 @@ nb = size(bands,2);
 Ef = bands(1,nb/2);
 ax_m = 150; % axis max, in meV
 plot(q_scale,1e3*(bands-Ef),'-k')
+nq = params.nq;
+xticks = q_scale([1,nq,2*nq-1,3*nq-2]);
+set(gca,'Xtick',xticks);
+xticklabels({'K','G','M','K'})
 axis([-inf inf -ax_m ax_m])

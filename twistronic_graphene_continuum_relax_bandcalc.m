@@ -95,7 +95,7 @@ function [bands, qarr, weights] = twistronic_graphene_continuum_relax_bandcalc(p
             pt(1,:) = k_sc;
             pt(2,:) = gamma_sc;
             pt(3,:) = m_sc;
-            pt(4,:) = k2_sc;
+            pt(4,:) = k_sc;%k2_sc;
             qcut_name = 'L12 supercell';
             xt_labels = {'$K_{12}$', '$\Gamma_{12}$', '$M_{12}$', '$K_{12}$'};
 
