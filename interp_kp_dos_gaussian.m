@@ -1,5 +1,5 @@
 function [dos, idos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_kpts, ...
-                                                b_size, max_E, dE)
+                                                b_size, max_E, dE, sig)
 
     % number of extra bands to include
     if ~exist('b_size','var')
@@ -32,7 +32,7 @@ function [dos, idos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_k
     E_list = [-max_E:dE:max_E];
     dos = zeros(length(E_list),1);
 
-    sig = .005;
+    %sig = .005;
 
     for tar_b = (nb/2)-b_size:(nb/2+1)+b_size
 

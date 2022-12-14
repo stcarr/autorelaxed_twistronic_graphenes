@@ -1,5 +1,5 @@
 function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, sweep_kpts, ...
-                                                b_size, max_E, dE)
+                                                b_center, b_size, max_E, dE)
 
     % number of extra bands to include
     if ~exist('b_size','var')
@@ -25,8 +25,9 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
     all_kpts1 = sweep_kpts;
     allbands1 = sweep_vals;
     allweights1 = sweep_weights; % norbs x nr x tot_dim x nk
-    allweights1 = squeeze(sum(allweights1,1)); % sum over all layers and orbitals
-    nr = size(allweights1,1);
+    %allweights1 = squeeze(sum(allweights1,1)); % sum over all layers and orbitals
+    norbs = size(allweights1,1);
+    nr = size(allweights1,2);%1); 
 
     kpoints = all_kpts1(:,[1 2]);
     eig_vals = allbands1;
@@ -38,21 +39,21 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
 
     triangles1 = zeros(n_tri,3);
     triangles2 = zeros(n_tri,3);
-    weights1 = zeros(n_tri,nr);
-    weights2 = zeros(n_tri,nr);
+    weights1 = zeros(n_tri,norbs,nr);
+    weights2 = zeros(n_tri,norbs,nr);
     k_tris1 = zeros(n_tri,3,2);
     k_tris2 = zeros(n_tri,3,2);
 
 
 
-    for tar_b = (nb/2)-b_size:(nb/2+1)+b_size
+    for tar_b = (b_center-b_size):(b_center+b_size)
     %for tar_b = 1;
     %fprintf("on band %d / %d \n",tar_b - ((nb/2)-b_size) + 1, 2*b_size + 2);
 
         for i = 1:nk
             for j = 1:nk
                 tar_band(i,j) = eig_vals((i-1)*nk + j,tar_b);
-                tar_weights(i,j,:) = allweights1(:,tar_b,(i-1)*nk + j);
+                tar_weights(i,j,:,:) = allweights1(:,:,tar_b,(i-1)*nk + j);
                 k_mesh(i,j,:) = kpoints((i-1)*nk + j,:);
                 %k_mesh(i,j,1) = 0.1*(j-nk/2);
                 %k_mesh(i,j,2) = 0.1*(i-nk/2);
@@ -89,7 +90,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
                 triangles1(tri_idx,2) = tar_band(ip,j);
                 triangles1(tri_idx,3) = tar_band(i,jp);
                 triangles1(tri_idx,4) = tar_band(i,jp);
-                weights1(tri_idx,:) = tar_weights(i,j,:);
+                weights1(tri_idx,:,:) = tar_weights(i,j,:,:);
 
                 k_tris1(tri_idx,1,:) = k_mesh(1,1,:);
                 k_tris1(tri_idx,2,:) = k_mesh(2,1,:);
@@ -102,7 +103,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
                 triangles2(tri_idx,1) = tar_band(i,j);
                 triangles2(tri_idx,2) = tar_band(im,j);
                 triangles2(tri_idx,3) = tar_band(i,jm);
-                weights2(tri_idx,:) = tar_weights(i,j,:);
+                weights2(tri_idx,:,:) = tar_weights(i,j,:,:);
 
                 k_tris2(tri_idx,1,:) = k_mesh(end,end,:);
                 k_tris2(tri_idx,2,:) = k_mesh(end-1,end,:);
@@ -119,7 +120,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
     end
 
     dos = zeros(length(E_list),1);
-    ldos = zeros(length(E_list),nr);
+    ldos = zeros(length(E_list),norbs,nr);
 
     for E_idx = 1:length(E_list)
         E = E_list(E_idx);
@@ -189,7 +190,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
             end
 
             dos(E_idx) = dos(E_idx) + f/norm(b);
-            ldos(E_idx,:) = ldos(E_idx,:) + weights1(t,:)*f/norm(b);
+            ldos(E_idx,:,:) = ldos(E_idx,:,:) + weights1(t,:,:)*f/norm(b);
 
            end
            if E > min(triangles2(t,:)) && E < max(triangles2(t,:))  
@@ -254,7 +255,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
             end
 
             dos(E_idx) = dos(E_idx) + f/norm(b);
-            ldos(E_idx,:) = ldos(E_idx,:) + weights2(t,:)*f/norm(b);
+            ldos(E_idx,:,:) = ldos(E_idx,:,:) + weights2(t,:,:)*f/norm(b);
 
            end
         end

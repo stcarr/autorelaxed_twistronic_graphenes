@@ -74,7 +74,10 @@ classdef InterCouplings < handle
                 end
             end
             
-            nk = floor(norm(norm(b12(:,1))/k_l));
+            nk = norm(norm(b12(:,1))/k_l);
+            if (nk > 1)
+               nk = floor(nk); % if doing multiple samples within one vector of b12, make it an integer multiple
+            end
             max_gridk = floor(1.5*k_inner/k_l);
             Gsc_base = b12/nk;
             
