@@ -1,36 +1,14 @@
-function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, sweep_kpts, ...
-                                                b_center, b_size, max_E, dE)
-
-    % number of extra bands to include
-    if ~exist('b_size','var')
-        b_size = 10;
-    end
-    % size of dos window
-    if ~exist('max_E','var')
-        max_E = 0.3;
-    end
-    % spacing of dos window
-    if ~exist('dE','var')
-        dE = 1e-3;
-    end
-
-    E_list = [-max_E:dE:max_E];
-
+function [dos, ldos, E_list] = interp_kp_ldos(theta, eig_vals, weights, kpoints, ...
+                                                b_center, b_size, E_list)
 
     fprintf("Starting LDOS calculation (via interp. method) \n");
     tic
 
     tri_idx = 1;
 
-    all_kpts1 = sweep_kpts;
-    allbands1 = sweep_vals;
-    allweights1 = sweep_weights; % norbs x nr x tot_dim x nk
-    %allweights1 = squeeze(sum(allweights1,1)); % sum over all layers and orbitals
-    norbs = size(allweights1,1);
-    nr = size(allweights1,2);%1); 
-
-    kpoints = all_kpts1(:,[1 2]);
-    eig_vals = allbands1;
+    % weights has dim norbs x nr x tot_dim x nk
+    norbs = size(weights,1);
+    nr = size(weights,2);%1); 
 
     nk = sqrt(size(eig_vals,1));
     nb = size(eig_vals,2);
@@ -53,7 +31,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
         for i = 1:nk
             for j = 1:nk
                 tar_band(i,j) = eig_vals((i-1)*nk + j,tar_b);
-                tar_weights(i,j,:,:) = allweights1(:,:,tar_b,(i-1)*nk + j);
+                tar_weights(i,j,:,:) = weights(:,:,tar_b,(i-1)*nk + j);
                 k_mesh(i,j,:) = kpoints((i-1)*nk + j,:);
                 %k_mesh(i,j,1) = 0.1*(j-nk/2);
                 %k_mesh(i,j,2) = 0.1*(i-nk/2);
@@ -119,7 +97,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
         end
     end
 
-    dos = zeros(length(E_list),1);
+    %dos = zeros(length(E_list),norbs);
     ldos = zeros(length(E_list),norbs,nr);
 
     for E_idx = 1:length(E_list)
@@ -189,7 +167,7 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
                 pause(10)                
             end
 
-            dos(E_idx) = dos(E_idx) + f/norm(b);
+            %dos(E_idx) = dos(E_idx) + f/norm(b);
             ldos(E_idx,:,:) = ldos(E_idx,:,:) + weights1(t,:,:)*f/norm(b);
 
            end
@@ -254,7 +232,6 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
                 pause(10)                
             end
 
-            dos(E_idx) = dos(E_idx) + f/norm(b);
             ldos(E_idx,:,:) = ldos(E_idx,:,:) + weights2(t,:,:)*f/norm(b);
 
            end
@@ -265,29 +242,14 @@ function [dos, ldos, E_list] = interp_kp_ldos(theta, sweep_vals, sweep_weights, 
 
     %dos_sweep{t_idx} = dos;
 
-    idos = zeros(size(dos));
-    for x = 1:length(E_list)
-        if (x > 1)
-            idos(x) = trapz(E_list(1:x),dos(1:x));
-        end
-    end
-
-    %tot_bands = 2*(b_size+1);
-    %tot_bands = 4*tot_bands; % 2 for valley, 2 for spin
-    %idos_rescale = tot_bands/idos(end);
     alpha = 2.47;
     sc_alpha = alpha/(2*sind(theta/2));
     sc_area = sc_alpha^2*sind(60)*1e-2; %area in nm^2
-    %n0 = 1/sc_area;
-    %dos_rescale = idos_rescale*n0;
-
     dos_rescale = 100*4/(2*pi)^2;
-    idos_rescale = dos_rescale*sc_area;
 
-    idos(:) = idos_rescale*(idos(:) - 0.5*idos(end));
-
-    dos = dos_rescale*dos;
-    ldos = dos_rescale*ldos; % ldos in same units as dos
+    ldos = dos_rescale*ldos;
+    dos = squeeze(ldos(:,:,1));
+    ldos = ldos(:,:,2:end);
 
     toc
 end

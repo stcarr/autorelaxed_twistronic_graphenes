@@ -343,14 +343,20 @@ function [bands, qarr, weights] = twistronic_graphene_continuum_relax_bandcalc(p
             kx = orb_kx{orb};
             ky = orb_ky{orb};
             tar_idxs = orb_idxs{orb};
+            
+            weights_global_h = raw_vecs(tar_idxs,:);
+            weights_global(orb,:) = sum(abs(weights_global_h).^2,1);
+
             for ldos_idx = 1:length(ldos_locations)
                 rx = ldos_locations(1,ldos_idx);
                 ry = ldos_locations(2,ldos_idx);
                 phase_h = exp(1j*(kx*rx + ky*ry));
                 weights_h = transpose(phase_h)*raw_vecs(tar_idxs,:);
-                weights(orb,ldos_idx,:,q_idx) = abs(weights_h).^2;
+                weights(orb,ldos_idx+1,:,q_idx) = abs(weights_h).^2;
+                % use first indiex of weights, (:,1,:,:), to store global DOS
             end
         end
+        weights(:,1,:,q_idx) = weights_global;
         
         if (mod(q_idx,10) == 0 || q_idx == 1)
             fprintf("H Diag: %d / %d \n",q_idx,size(q_list,1));

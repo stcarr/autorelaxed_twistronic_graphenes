@@ -1,19 +1,5 @@
-function [dos, idos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_kpts, ...
-                                                b_size, max_E, dE, sig)
-
-    % number of extra bands to include
-    if ~exist('b_size','var')
-        b_size = 10;
-    end
-    % size of dos window
-    if ~exist('max_E','var')
-        max_E = 0.3;
-    end
-    % spacing of dos window
-    if ~exist('dE','var')
-        dE = 1e-3;
-    end
-
+function [dos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_kpts, weights, ...
+                                                b_size, E_list, sig)
 
     fprintf("Starting DOS calculation (via Gaussian method) \n");
     tic
@@ -29,8 +15,8 @@ function [dos, idos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_k
     nk = sqrt(size(eig_vals,1));
     nb = size(eig_vals,2);
 
-    E_list = [-max_E:dE:max_E];
-    dos = zeros(length(E_list),1);
+    norbs = size(weights,1);
+    dos = zeros(norbs,length(E_list));
 
     %sig = .005;
 
@@ -38,32 +24,33 @@ function [dos, idos, E_list] = interp_kp_dos_gaussian(theta, sweep_vals, sweep_k
 
         for i = 1:nk
             for j = 1:nk
-                Eh = eig_vals((i-1)*nk + j,tar_b);
-                dos = dos + exp(-(E_list'-Eh).^2/(2*sig^2))/(sqrt(2*pi*sig^2))/nk^2;
+                idx_h = (i-1)*nk + j;
+                w_h = weights(:,tar_b,idx_h);
+                Eh = eig_vals(idx_h,tar_b);
+                dos = dos + w_h*(exp(-(E_list-Eh).^2/(2*sig^2))/(sqrt(2*pi*sig^2))/nk^2);
             end
         end
 
     end
 
-    %dos_sweep{t_idx} = dos;
 
-    idos = zeros(size(dos));
-    for x = 1:length(E_list)
-        if (x > 1)
-            idos(x) = trapz(E_list(1:x),dos(1:x));
-        end
-    end
+    %idos = zeros(size(dos));
+    %for x = 1:length(E_list)
+    %    if (x > 1)
+    %        idos(:,x) = trapz(E_list(1:x),dos(1:x));
+    %    end
+    %end
 
     alpha = 2.47;
     sc_alpha = alpha/(2*sind(theta/2));
     sc_area = sc_alpha^2*sind(60)*1e-2; %area in nm^2
     
     dos_rescale = 4/sc_area;
-    idos_rescale = 4;
+    %idos_rescale = 4;
 
-    idos(:) = idos_rescale*(idos(:) - 0.5*idos(end));
+    %idos(:) = idos_rescale*(idos(:) - 0.5*idos(end));
 
-    dos = dos_rescale*dos;
+    dos = dos_rescale*dos'; % swap dimensions to match that returned by the ldos function
 
     toc
 
